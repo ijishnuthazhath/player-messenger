@@ -18,12 +18,13 @@ import java.util.concurrent.*;
  *
  * The mailbox is unbounded. Guess it's okay since our messages are lightweight.
  *
- * @param <M> Type of message accepted by this actor
+ * SimpleActor is designed to handler Message type. It's simpler in this case.
+ * We could say, use SimpleActor<T> instead and avoid Message abstraction so that all actors in the system could create any type of messages.
  */
-public abstract class SimpleActor<M extends Message> implements Actor<M> {
+public abstract class SimpleActor implements Actor {
     private final String name;
 
-    private final BlockingQueue<M> mailbox = new LinkedBlockingDeque<>();
+    private final BlockingQueue<Message> mailbox = new LinkedBlockingDeque<>();
     private final ExecutorService service = Executors.newSingleThreadExecutor();
 
     protected volatile boolean running;
@@ -41,7 +42,7 @@ public abstract class SimpleActor<M extends Message> implements Actor<M> {
     private void processMailbox() {
         while (running) {
             try {
-                final M msg = mailbox.take();
+                final Message msg = mailbox.take();
                 try {
                     onReceive(msg);
                 } catch (final Exception ex) {
@@ -59,7 +60,7 @@ public abstract class SimpleActor<M extends Message> implements Actor<M> {
      * The message is added to the mailbox and processed later.
      * If the mailbox is full, the caller waits until space becomes available or times out.
      */
-    public final void tell(final M msg) {
+    public final void tell(final Message msg) {
         try {
             this.mailbox.offer(msg, 600, TimeUnit.MILLISECONDS);
         } catch (final InterruptedException ex) {
@@ -67,7 +68,7 @@ public abstract class SimpleActor<M extends Message> implements Actor<M> {
         }
     }
 
-    protected abstract void onReceive(M msg);
+    protected abstract void onReceive(Message msg);
 
     protected void shutdown() {
         this.running = false;

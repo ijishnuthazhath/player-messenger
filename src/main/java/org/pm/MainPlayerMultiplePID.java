@@ -32,7 +32,7 @@ public class MainPlayerMultiplePID {
          * I gave the possibility of creating multiple players in the system.
          * When there are more than one player, then the first one created will initiate the chat.
          */
-        final List<ActorRef<Player.PlayerMessage>> playersList = new ArrayList<>();
+        final List<ActorRef> playersList = new ArrayList<>();
         for (final String playerName : players) {
             playersList.add(playerSystem.createPlayer(playerName.trim()));
         }
@@ -51,7 +51,7 @@ public class MainPlayerMultiplePID {
             final int receiverPort = Integer.parseInt(receiverParts[2]);
 
             System.out.printf("Initiate Chat between %s and %s ===> \n", playersList.getFirst().id(), receiverName);
-            playersList.getFirst().tell(new Player.SendMessage("Hello", new RemoteActorRef<>(receiverName, receiverHost, receiverPort, playerSystem.getContext())));
+            playersList.getFirst().tell(new Player.SendMessage("Hello", new RemoteActorRef(receiverName, receiverHost, receiverPort, playerSystem.getContext())));
         }
 
         // Note that we cannot call for player-system shutdown here because it will try to stop all players in this system,

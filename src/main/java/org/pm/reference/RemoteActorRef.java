@@ -13,7 +13,7 @@ import java.net.Socket;
  *
  * Uses very basic serialization and socket connection for now. Can use Java NIO or other better solutions for production grade.
  */
-public class RemoteActorRef<M extends Message> implements ActorRef<M> {
+public class RemoteActorRef implements ActorRef {
     private final String playerName;
     private final String toHost;
     private final int toPort;
@@ -28,7 +28,7 @@ public class RemoteActorRef<M extends Message> implements ActorRef<M> {
     }
 
     @Override
-    public void tell(M message) {
+    public void tell(Message message) {
         try {
             final Socket socket = new Socket(toHost, toPort);
             final PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);

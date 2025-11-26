@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 public class PlayerSystem {
     private final int port;
 
-    private final ActorRef<PlayerRouter.RouterMessage> localServerRef;
+    private final ActorRef localServerRef;
     private final ExecutorService executorService;
 
     private volatile boolean running;
@@ -41,7 +41,7 @@ public class PlayerSystem {
         this.port = port;
 
         this.executorService = Executors.newSingleThreadExecutor();
-        this.localServerRef = new LocalActorRef<>(new PlayerRouter());
+        this.localServerRef = new LocalActorRef(new PlayerRouter());
 
         this.ctx = new Context(InetAddress.getLocalHost().getHostName(), port, isRemote);
         this.deserializerRegistry = new DeserializerRegistry();
@@ -97,9 +97,9 @@ public class PlayerSystem {
         });
     }
 
-    public ActorRef<Player.PlayerMessage> createPlayer(final String name) {
+    public ActorRef createPlayer(final String name) {
         System.out.printf("Creating player %s%n", name);
-        final ActorRef<Player.PlayerMessage> player = new LocalActorRef<>(new Player(name));
+        final ActorRef player = new LocalActorRef(new Player(name));
         this.localServerRef.tell(new PlayerRouter.PlayerRegisterMessage(player));
         return player;
     }

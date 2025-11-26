@@ -24,7 +24,7 @@ public class DirectMessageDeserializer implements MessageDeserializer {
 
         return new PlayerRouter.PlayerRouteMessage(
                 to,
-                new Player.DirectMessage(msg, new RemoteActorRef<>(from, host, port, context))
+                new Player.DirectMessage(msg, new RemoteActorRef(from, host, port, context))
         );
     }
 

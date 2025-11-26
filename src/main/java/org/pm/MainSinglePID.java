@@ -24,8 +24,8 @@ public class MainSinglePID {
         System.out.println("Creating player system");
         final PlayerSystem playerSystem = new PlayerSystem(-1, false);
 
-        final ActorRef<Player.PlayerMessage> initiator = playerSystem.createPlayer(initiatorName);
-        final ActorRef<Player.PlayerMessage> receiver = playerSystem.createPlayer(receiverName);
+        final ActorRef initiator = playerSystem.createPlayer(initiatorName);
+        final ActorRef receiver = playerSystem.createPlayer(receiverName);
 
         // Send a message from initiator to receiver.
         System.out.printf("Initiate Chat between %s and %s ===> \n", initiator.id(), receiver.id());

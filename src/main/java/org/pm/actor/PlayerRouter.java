@@ -3,7 +3,8 @@ package org.pm.actor;
 import org.pm.message.Message;
 import org.pm.reference.ActorRef;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is an interesting actor that routes messages to players based on the player's name.
@@ -12,13 +13,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * Is this class really required ?
  * Actually no, we can send messages to the players from the PlayerSystem that runs on the port.
- * I chose to separate the routing logic and player to local-reference mapping and the state management to a separate actor (Uncle Bob smiling in the background :D).
+ * I chose to separate the routing logic and player to local-reference mapping and the state management to a separate actor (Uncle Bob smiling :D).
  * <p>
  * If we have other actors in the system, we use this to route messages them too by adding new routing types.
  */
-public class PlayerRouter extends SimpleActor<PlayerRouter.RouterMessage> {
+public class PlayerRouter extends SimpleActor {
     private static final String ID = "player-router";
-    private final ConcurrentHashMap<String, ActorRef<Player.PlayerMessage>> actorRefByName = new ConcurrentHashMap<>();
+
+    // Since only one thread executes the mailbox, there is no need to synchronize access to the map. The crust of actor model here.
+    private final Map<String, ActorRef> actorRefByName = new HashMap<>();
 
     public PlayerRouter() {
         super(ID);
@@ -30,7 +33,7 @@ public class PlayerRouter extends SimpleActor<PlayerRouter.RouterMessage> {
      * @param msg
      */
     @Override
-    protected void onReceive(final RouterMessage msg) {
+    protected void onReceive(final Message msg) {
         if (msg instanceof PlayerRegisterMessage regMsg) {
             handlePlayerRegister(regMsg);
         } else if (msg instanceof PlayerRouteMessage routeMsg) {
@@ -62,7 +65,7 @@ public class PlayerRouter extends SimpleActor<PlayerRouter.RouterMessage> {
      */
     private void handlePlayerRoute(final PlayerRouteMessage routeMsg) {
         if (routeMsg != null) {
-            final ActorRef<Player.PlayerMessage> toPlayerRef = this.actorRefByName.get(routeMsg.to);
+            final ActorRef toPlayerRef = this.actorRefByName.get(routeMsg.to);
 
             if (toPlayerRef != null) {
                 toPlayerRef.tell(routeMsg.message);
@@ -85,10 +88,10 @@ public class PlayerRouter extends SimpleActor<PlayerRouter.RouterMessage> {
     public interface RouterMessage extends Message {
     }
 
-    public record PlayerRegisterMessage(ActorRef<Player.PlayerMessage> playerRef) implements RouterMessage {
+    public record PlayerRegisterMessage(ActorRef playerRef) implements RouterMessage {
     }
 
-    public record PlayerRouteMessage(String to, Player.PlayerMessage message) implements RouterMessage {
+    public record PlayerRouteMessage(String to, Message message) implements RouterMessage {
     }
 
     // This will add a kill message at the end of the mailbox. The mailbox will be processed until it reaches this message.

@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 3. Supports for shutdown.
  * 4. The counter contains the messages sent by this player.
  */
-public class Player extends SimpleActor<Player.PlayerMessage> {
+public class Player extends SimpleActor {
 
     private final AtomicInteger counter = new AtomicInteger(0);
     private static final int maxCount = 10;
@@ -37,7 +37,7 @@ public class Player extends SimpleActor<Player.PlayerMessage> {
      * This design would be more useful if we could de-couple the behaviour from the actor.
      */
     @Override
-    protected void onReceive(final Player.PlayerMessage msg) {
+    protected void onReceive(final Message msg) {
         if (msg instanceof SendMessage sendMessage) {
             handleSendMessage(sendMessage);
         } else if (msg instanceof DirectMessage directMessage) {
@@ -59,7 +59,7 @@ public class Player extends SimpleActor<Player.PlayerMessage> {
     private void handleSendMessage(final SendMessage sendMessage) {
         final int currentCount = this.counter.incrementAndGet();
         if (currentCount <= maxCount) {
-            sendMessage.sendTo.tell(new DirectMessage(sendMessage.message, new LocalActorRef<>(this)));
+            sendMessage.sendTo.tell(new DirectMessage(sendMessage.message, new LocalActorRef(this)));
         } else {
             sendMessage.sendTo.tell(new ShutdownMessage());
             this.tell(new ShutdownMessage());
@@ -85,7 +85,7 @@ public class Player extends SimpleActor<Player.PlayerMessage> {
     public interface PlayerMessage extends Message {
     }
 
-    public record SendMessage(String message, ActorRef<PlayerMessage> sendTo) implements PlayerMessage {
+    public record SendMessage(String message, ActorRef sendTo) implements PlayerMessage {
     }
 
     /**
@@ -93,7 +93,7 @@ public class Player extends SimpleActor<Player.PlayerMessage> {
      * Implements a very minimal serialization by overriding the toString method. This is used when sending the message over network.
      * Hard coded the type as a string to identify the message type when deserializing. Can be done better.
      */
-    public record DirectMessage(String message, ActorRef<PlayerMessage> replyTo) implements PlayerMessage {
+    public record DirectMessage(String message, ActorRef replyTo) implements PlayerMessage {
         @Override
         public String toString() {
             return String.format("%s|%s|%s", "direct", message, replyTo.id());
@@ -104,7 +104,6 @@ public class Player extends SimpleActor<Player.PlayerMessage> {
      * The interesting thing about shutting down an actor is that you might still have some messages in the player mailbox to process.
      * So, when Shutdown command is received the player will append the KillPill command the end of the mailbox so the player actor is actually shutdown when KillPill command is processed.
      */
-
     public record ShutdownMessage() implements PlayerMessage {
         @Override
         public String toString() {

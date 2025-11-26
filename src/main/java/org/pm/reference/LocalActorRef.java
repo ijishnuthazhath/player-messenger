@@ -6,16 +6,16 @@ import org.pm.message.Message;
 /**
  * This class is to hold the reference for local actors.
  */
-public class LocalActorRef<M extends Message> implements ActorRef<M> {
+public class LocalActorRef implements ActorRef {
 
-    private final SimpleActor<M> actor;
+    private final SimpleActor actor;
 
-    public LocalActorRef(SimpleActor<M> actor) {
+    public LocalActorRef(SimpleActor actor) {
         this.actor = actor;
     }
 
     @Override
-    public void tell(M message) {
+    public void tell(Message message) {
         this.actor.tell(message);
     }
 
